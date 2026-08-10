@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Coffee Catch Deluxe V2</title>
+<style>
+*{margin:0;box-sizing:border-box}
+body{overflow:hidden;font-family:Comic Sans MS,cursive;background:#8fe8ff}
+canvas{display:block;width:100vw;height:100vh}
+#ui{position:fixed;top:8px;left:0;right:0;display:flex;justify-content:space-evenly;z-index:5}
+.pill{background:#ffe15a;border:4px solid #fff;border-radius:999px;padding:10px 18px;font-weight:900;color:#7a5200;box-shadow:0 5px 0 #cc9b00}
+#overlay{position:fixed;inset:0;display:flex;flex-direction:column;justify-content:center;align-items:center;background:rgba(0,0,0,.4);color:#fff;z-index:10}
+button{padding:16px 32px;border:none;border-radius:999px;background:#ff6b6b;color:#fff;font-size:22px;font-weight:bold}
+.hidden{display:none}
+</style>
+</head>
+<body>
+<div id="ui">
+<div class="pill">Score <span id="score">0</span></div>
+<div class="pill">Level <span id="level">1</span></div>
+<div class="pill">Lives <span id="lives">3</span></div>
+</div>
+<canvas id="game"></canvas>
+<div id="overlay"><h1>☕ Coffee Catch Deluxe V2</h1><br><button id="startBtn">Start Game</button></div>
+<script>
+const canvas=document.getElementById('game');
+const ctx=canvas.getContext('2d');
+let W,H,targetX=0,cup,drips=[],steam=[],particles=[];
+let score=0,lives=3,level=1,running=false;
+function resize(){W=canvas.width=innerWidth;H=canvas.height=innerHeight;} resize(); addEventListener('resize',resize);
+function reset(){score=0;lives=3;level=1;drips=[];steam=[];particles=[];cup={x:W/2,y:H-120};targetX=W/2;running=true;scoreEl.textContent=0;levelEl.textContent=1;livesEl.textContent=3;overlay.classList.add('hidden');}
+const scoreEl=score, levelEl=document.getElementById('level'), livesEl=document.getElementById('lives');
+const overlay=document.getElementById('overlay');
+document.getElementById('startBtn').onclick=()=>{document.getElementById('score').textContent=0;reset();};
+addEventListener('pointermove',e=>targetX=e.clientX);
+addEventListener('deviceorientation',e=>{if(e.gamma!=null) targetX=W/2+(e.gamma/45)*(W*0.4);});
+setInterval(()=>{if(running){drips.push({x:40+Math.random()*(W-80),y:-20,r:14+Math.random()*10,v:3+level*0.6});}},700);
+function splash(x,y,color){for(let i=0;i<20;i++)particles.push({x,y,vx:(Math.random()-.5)*8,vy:(Math.random()-.5)*8,life:40,color});}
+function drawCup(){ctx.save();ctx.translate(cup.x,cup.y);ctx.fillStyle='#fff8df';ctx.strokeStyle='#3b2a1f';ctx.lineWidth=6;ctx.beginPath();ctx.moveTo(-45,-15);ctx.quadraticCurveTo(-55,50,-35,60);ctx.lineTo(35,60);ctx.quadraticCurveTo(55,50,45,-15);ctx.closePath();ctx.fill();ctx.stroke();ctx.beginPath();ctx.arc(55,18,18,-1,1);ctx.stroke();ctx.fillStyle='#4a3325';ctx.beginPath();ctx.arc(-10,15,3,0,7);ctx.arc(10,15,3,0,7);ctx.fill();ctx.beginPath();ctx.arc(0,28,12,0,Math.PI);ctx.stroke();ctx.fillStyle='#7a4a20';ctx.beginPath();ctx.ellipse(0,-12,32,10,0,0,7);ctx.fill();ctx.restore();}
+function loop(){requestAnimationFrame(loop);let g=ctx.createLinearGradient(0,0,0,H);g.addColorStop(0,'#8ce8ff');g.addColorStop(1,'#fff2a7');ctx.fillStyle=g;ctx.fillRect(0,0,W,H);for(let i=0;i<20;i++){ctx.fillStyle=i%2?'#ffd1df':'#b8fff5';ctx.fillRect(i*80,H-90,80,90);} if(!running)return; cup.x+=(targetX-cup.x)*0.12; if(Math.random()<0.15)steam.push({x:cup.x+(Math.random()-.5)*20,y:cup.y,r:8+Math.random()*8,a:.3}); steam=steam.filter(s=>s.a>0); for(const s of steam){s.y-=1;s.a-=.004;ctx.fillStyle='rgba(255,255,255,'+s.a+')';ctx.beginPath();ctx.arc(s.x,s.y,s.r,0,7);ctx.fill();} drawCup(); for(let i=drips.length-1;i>=0;i--){let d=drips[i]; d.y+=d.v; ctx.fillStyle='#9f6431';ctx.strokeStyle='#4a2d17';ctx.lineWidth=3;ctx.beginPath();ctx.moveTo(d.x,d.y-d.r);ctx.quadraticCurveTo(d.x+d.r,d.y,d.x,d.y+d.r);ctx.quadraticCurveTo(d.x-d.r,d.y,d.x,d.y-d.r);ctx.fill();ctx.stroke(); if(Math.abs(d.x-cup.x)<42&&d.y>cup.y-20&&d.y<cup.y+20){score++;document.getElementById('score').textContent=score;splash(d.x,d.y,'#9f6431');if(score%10===0){level++;levelEl.textContent=level;}drips.splice(i,1);continue;} if(d.y>H){lives--;livesEl.textContent=lives;drips.splice(i,1);if(lives<=0){running=false;overlay.classList.remove('hidden');}} } for(let i=particles.length-1;i>=0;i--){let p=particles[i];p.x+=p.vx;p.y+=p.vy;p.life--;ctx.fillStyle=p.color;ctx.beginPath();ctx.arc(p.x,p.y,4,0,7);ctx.fill();if(p.life<=0)particles.splice(i,1);} }
+loop();
+</script></body></html>
