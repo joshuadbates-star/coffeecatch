@@ -9,7 +9,12 @@
 button{padding:16px 30px;border:none;border-radius:999px;background:#ff6b6b;color:white;font-size:22px}
 .hidden{display:none!important}
 </style></head><body>
-<div id="ui"><div class="pill">Score <span id="score">0</span></div><div class="pill">Level <span id="level">1</span></div><div class="pill">Lives <span id="lives">3</span></div></div>
+<div id="ui"><div class="pill">Score <span id="score">0</span></div><div class="pill">Level <span id="level">1</span></div><div class="pill">Lives <span id="lives">3</span></div></div> <div class="pill">
+  Misses
+  <span id="misses">0</span>/3
+</div>
+  const missesEl =
+  document.getElementById("misses");
 <canvas id="game"></canvas>
 <div id="overlay"><div id="bgTitle"></div><div id="menu"><h1>☕ Coffee Catch Deluxe V3</h1><br><button id="startBtn">Start Game</button></div></div>
 <script>
@@ -19,7 +24,29 @@ const canvas=document.getElementById('game'),ctx=canvas.getContext('2d'); let W,
 function resize(){W=canvas.width=innerWidth;H=canvas.height=innerHeight} resize(); addEventListener('resize',resize);
 const scoreEl=document.getElementById('score'),levelEl=document.getElementById('level'),livesEl=document.getElementById('lives');
 const overlay=document.getElementById('overlay');
-let cup,targetX=0,drips=[],steam=[],parts=[],score=0,lives=3,level=1,running=false;
+const GAME_STATE = {
+  TITLE: "title",
+  CATCH: "catch",
+  ORDER_READY: "order_ready",
+  DELIVERY: "delivery",
+  LEVEL_COMPLETE: "level_complete",
+  CATCH_FAIL: "catch_fail",
+  DELIVERY_FAIL: "delivery_fail"
+};
+
+let currentState = GAME_STATE.TITLE;
+  const GAME_STATE = {
+  TITLE: "title",
+  CATCH: "catch",
+  ORDER_READY: "order_ready",
+  DELIVERY: "delivery",
+  LEVEL_COMPLETE: "level_complete",
+  CATCH_FAIL: "catch_fail",
+  DELIVERY_FAIL: "delivery_fail"
+};
+let missedDrops = 0;
+let maxMisses = 3;
+let currentState = GAME_STATE.TITLE;
 function startGame(){score=0;lives=3;level=1;scoreEl.textContent=0;levelEl.textContent=1;livesEl.textContent=3;cup={x:W/2,y:H-120};targetX=W/2;drips=[];steam=[];parts=[];running=true;overlay.classList.add('hidden');}
 document.getElementById('startBtn').onclick=startGame;
 addEventListener('pointermove',e=>targetX=e.clientX);
@@ -27,8 +54,104 @@ addEventListener('deviceorientation',e=>{if(e.gamma!=null)targetX=W/2+(e.gamma/4
 setInterval(()=>{if(running)drips.push({x:40+Math.random()*(W-80),y:-20,r:16+Math.random()*10,v:3+level*.6})},700);
 function splash(x,y,c){for(let i=0;i<20;i++)parts.push({x,y,vx:(Math.random()-.5)*8,vy:(Math.random()-.5)*8,life:40,c})}
 function drawCup(){ctx.save();ctx.translate(cup.x,cup.y);ctx.fillStyle='#fff8df';ctx.strokeStyle='#3b2a1f';ctx.lineWidth=6;ctx.beginPath();ctx.moveTo(-45,-15);ctx.quadraticCurveTo(-55,50,-35,60);ctx.lineTo(35,60);ctx.quadraticCurveTo(55,50,45,-15);ctx.closePath();ctx.fill();ctx.stroke();ctx.beginPath();ctx.arc(55,18,18,-1,1);ctx.stroke();ctx.fillStyle='#4a3325';ctx.beginPath();ctx.arc(-10,15,3,0,7);ctx.arc(10,15,3,0,7);ctx.fill();ctx.beginPath();ctx.arc(0,28,12,0,Math.PI);ctx.stroke();ctx.restore();}
-function drawDrop(d){ctx.fillStyle='#9f6431';ctx.strokeStyle='#4a2d17';ctx.lineWidth=3;ctx.beginPath();ctx.moveTo(d.x,d.y-d.r*1.25);ctx.bezierCurveTo(d.x+d.r,d.y-d.r*.5,d.x+d.r*1.2,d.y+d.r*.4,d.x,d.y+d.r*1.2);ctx.bezierCurveTo(d.x-d.r*1.2,d.y+d.r*.4,d.x-d.r,d.y-d.r*.5,d.x,d.y-d.r*1.25);ctx.closePath();ctx.fill();ctx.stroke();ctx.fillStyle='rgba(255,255,255,.35)';ctx.beginPath();ctx.ellipse(d.x-d.r*.35,d.y-d.r*.25,d.r*.22,d.r*.35,-.4,0,Math.PI*2);ctx.fill();}
-function loop(){requestAnimationFrame(loop);if(bgSrc){let img=window.bgImg||(window.bgImg=new Image(),window.bgImg.src=bgSrc,window.bgImg); if(img.complete) ctx.drawImage(img,0,0,W,H); else {ctx.fillStyle='#d9c5b2';ctx.fillRect(0,0,W,H);}} else {ctx.fillStyle='#d9c5b2';ctx.fillRect(0,0,W,H);}
+function drawDrop(d) {
+
+  const r = d.r;
+
+  const grad = ctx.createRadialGradient(
+    d.x - r * 0.3,
+    d.y - r * 0.5,
+    1,
+    d.x,
+    d.y,
+    r * 1.8
+  );
+
+  grad.addColorStop(0, "#b98a63");
+  grad.addColorStop(0.5, "#8b5a34");
+  grad.addColorStop(1, "#472716");
+
+  ctx.fillStyle = grad;
+  ctx.strokeStyle = "#2a160d";
+  ctx.lineWidth = 4;
+
+  ctx.beginPath();
+
+  ctx.moveTo(d.x, d.y - r * 1.45);
+
+  ctx.bezierCurveTo(
+    d.x + r * 0.55,
+    d.y - r * 0.95,
+
+    d.x + r * 1.0,
+    d.y - r * 0.2,
+
+    d.x + r * 0.95,
+    d.y + r * 0.6
+  );
+
+  ctx.bezierCurveTo(
+    d.x + r * 0.8,
+    d.y + r * 1.55,
+
+    d.x - r * 0.8,
+    d.y + r * 1.55,
+
+    d.x - r * 0.95,
+    d.y + r * 0.6
+  );
+
+  ctx.bezierCurveTo(
+    d.x - r * 1.0,
+    d.y - r * 0.2,
+
+    d.x - r * 0.55,
+    d.y - r * 0.95,
+
+    d.x,
+    d.y - r * 1.45
+  );
+
+  ctx.closePath();
+
+  ctx.fill();
+  ctx.stroke();
+
+  // glossy highlight
+
+  ctx.fillStyle = "rgba(255,255,255,.55)";
+
+  ctx.beginPath();
+
+  ctx.ellipse(
+    d.x - r * .35,
+    d.y - r * .45,
+    r * .18,
+    r * .35,
+    -.5,
+    0,
+    Math.PI * 2
+  );
+
+  ctx.fill();
+
+  // sparkle
+
+  ctx.fillStyle = "rgba(255,255,255,.25)";
+
+  ctx.beginPath();
+
+  ctx.arc(
+    d.x + r * .22,
+    d.y + r * .15,
+    r * .10,
+    0,
+    Math.PI * 2
+  );
+
+  ctx.fill();
+}
+  function loop(){requestAnimationFrame(loop);if(bgSrc){let img=window.bgImg||(window.bgImg=new Image(),window.bgImg.src=bgSrc,window.bgImg); if(img.complete) ctx.drawImage(img,0,0,W,H); else {ctx.fillStyle='#d9c5b2';ctx.fillRect(0,0,W,H);}} else {ctx.fillStyle='#d9c5b2';ctx.fillRect(0,0,W,H);}
 if(!running) return; cup.x+=(targetX-cup.x)*.12; if(Math.random()<.15)steam.push({x:cup.x,y:cup.y,r:8+Math.random()*8,a:.3}); steam=steam.filter(s=>s.a>0);
 for(const s of steam){s.y-=1;s.a-=.004;ctx.fillStyle='rgba(255,255,255,'+s.a+')';ctx.beginPath();ctx.arc(s.x,s.y,s.r,0,7);ctx.fill();}
 for(let i=drips.length-1;i>=0;i--){let d=drips[i]; d.y+=d.v; drawDrop(d); if(Math.abs(d.x-cup.x)<42&&d.y>cup.y-20&&d.y<cup.y+20){score++;scoreEl.textContent=score;if(score%10===0){level++;levelEl.textContent=level;} splash(d.x,d.y,'#9f6431');drips.splice(i,1);continue;} if(d.y>H){lives--;livesEl.textContent=lives;drips.splice(i,1);if(lives<=0){running=false;overlay.classList.remove('hidden');}} } drawCup();
