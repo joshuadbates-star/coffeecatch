@@ -155,6 +155,7 @@ function drawDrop(d) {
   );
 
   ctx.fill();
+}
 }  function loop(){requestAnimationFrame(loop);if(bgSrc){let img=window.bgImg||(window.bgImg=new Image(),window.bgImg.src=bgSrc,window.bgImg); if(img.complete) ctx.drawImage(img,0,0,W,H); else {ctx.fillStyle='#d9c5b2';ctx.fillRect(0,0,W,H);}} else {ctx.fillStyle='#d9c5b2';ctx.fillRect(0,0,W,H);}
 if(!running) return; cup.x+=(targetX-cup.x)*.12; if(Math.random()<.15)steam.push({x:cup.x,y:cup.y,r:8+Math.random()*8,a:.3}); steam=steam.filter(s=>s.a>0);
 for(const s of steam){s.y-=1;s.a-=.004;ctx.fillStyle='rgba(255,255,255,'+s.a+')';ctx.beginPath();ctx.arc(s.x,s.y,s.r,0,7);ctx.fill();}
