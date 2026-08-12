@@ -64,52 +64,59 @@ function drawDrop(d) {
     1,
     d.x,
     d.y,
-    r * 1.8
+    r * 2
   );
 
-  grad.addColorStop(0, "#b98a63");
-  grad.addColorStop(0.5, "#8b5a34");
+  grad.addColorStop(0, "#c39165");
+  grad.addColorStop(0.45, "#8a532d");
   grad.addColorStop(1, "#472716");
 
   ctx.fillStyle = grad;
-  ctx.strokeStyle = "#2a160d";
+  ctx.strokeStyle = "#2b160a";
   ctx.lineWidth = 4;
 
   ctx.beginPath();
 
-  ctx.moveTo(d.x, d.y - r * 1.45);
+  // pointed top
+  ctx.moveTo(
+    d.x,
+    d.y - r * 1.55
+  );
 
+  // right shoulder
   ctx.bezierCurveTo(
-    d.x + r * 0.55,
-    d.y - r * 0.95,
-
-    d.x + r * 1.0,
-    d.y - r * 0.2,
+    d.x + r * 0.45,
+    d.y - r * 1.05,
 
     d.x + r * 0.95,
-    d.y + r * 0.6
+    d.y - r * 0.45,
+
+    d.x + r * 1.10,
+    d.y + r * 0.30
   );
 
+  // BIG ROUND BULB
   ctx.bezierCurveTo(
-    d.x + r * 0.8,
+    d.x + r * 1.25,
     d.y + r * 1.55,
 
-    d.x - r * 0.8,
+    d.x - r * 1.25,
     d.y + r * 1.55,
 
+    d.x - r * 1.10,
+    d.y + r * 0.30
+  );
+
+  // left shoulder
+  ctx.bezierCurveTo(
     d.x - r * 0.95,
-    d.y + r * 0.6
-  );
+    d.y - r * 0.45,
 
-  ctx.bezierCurveTo(
-    d.x - r * 1.0,
-    d.y - r * 0.2,
-
-    d.x - r * 0.55,
-    d.y - r * 0.95,
+    d.x - r * 0.45,
+    d.y - r * 1.05,
 
     d.x,
-    d.y - r * 1.45
+    d.y - r * 1.55
   );
 
   ctx.closePath();
@@ -117,41 +124,38 @@ function drawDrop(d) {
   ctx.fill();
   ctx.stroke();
 
-  // glossy highlight
-
-  ctx.fillStyle = "rgba(255,255,255,.55)";
+  // primary glossy shine
+  ctx.fillStyle = "rgba(255,255,255,.60)";
 
   ctx.beginPath();
 
   ctx.ellipse(
-    d.x - r * .35,
-    d.y - r * .45,
-    r * .18,
-    r * .35,
-    -.5,
+    d.x - r * 0.40,
+    d.y - r * 0.50,
+    r * 0.22,
+    r * 0.42,
+    -0.5,
     0,
     Math.PI * 2
   );
 
   ctx.fill();
 
-  // sparkle
-
+  // secondary shine
   ctx.fillStyle = "rgba(255,255,255,.25)";
 
   ctx.beginPath();
 
   ctx.arc(
-    d.x + r * .22,
-    d.y + r * .15,
-    r * .10,
+    d.x + r * 0.25,
+    d.y + r * 0.25,
+    r * 0.12,
     0,
     Math.PI * 2
   );
 
   ctx.fill();
-}
-  function loop(){requestAnimationFrame(loop);if(bgSrc){let img=window.bgImg||(window.bgImg=new Image(),window.bgImg.src=bgSrc,window.bgImg); if(img.complete) ctx.drawImage(img,0,0,W,H); else {ctx.fillStyle='#d9c5b2';ctx.fillRect(0,0,W,H);}} else {ctx.fillStyle='#d9c5b2';ctx.fillRect(0,0,W,H);}
+}  function loop(){requestAnimationFrame(loop);if(bgSrc){let img=window.bgImg||(window.bgImg=new Image(),window.bgImg.src=bgSrc,window.bgImg); if(img.complete) ctx.drawImage(img,0,0,W,H); else {ctx.fillStyle='#d9c5b2';ctx.fillRect(0,0,W,H);}} else {ctx.fillStyle='#d9c5b2';ctx.fillRect(0,0,W,H);}
 if(!running) return; cup.x+=(targetX-cup.x)*.12; if(Math.random()<.15)steam.push({x:cup.x,y:cup.y,r:8+Math.random()*8,a:.3}); steam=steam.filter(s=>s.a>0);
 for(const s of steam){s.y-=1;s.a-=.004;ctx.fillStyle='rgba(255,255,255,'+s.a+')';ctx.beginPath();ctx.arc(s.x,s.y,s.r,0,7);ctx.fill();}
 for(let i=drips.length-1;i>=0;i--){let d=drips[i]; d.y+=d.v; drawDrop(d); if(Math.abs(d.x-cup.x)<42&&d.y>cup.y-20&&d.y<cup.y+20){score++;scoreEl.textContent=score;if(score%10===0){level++;levelEl.textContent=level;} splash(d.x,d.y,'#9f6431');drips.splice(i,1);continue;} if(d.y>H){lives--;livesEl.textContent=lives;drips.splice(i,1);if(lives<=0){running=false;overlay.classList.remove('hidden');}} } drawCup();
